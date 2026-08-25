@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "metrics": {
+    "production_loc": 2365,
+    "production_files": 36,
+    "production_packages": 10,
+    "test_files": 11,
+    "production_functions": 178,
+    "decision_points": 331
+  },
+  "persistence": {
+    "module": "go.etcd.io/bbolt",
+    "entities": [
+      "ShareRecord",
+      "AccessEvent",
+      "GatewayConfig",
+      "AuditEntry",
+      "RateWindow",
+      "TokenGrant"
+    ],
+    "reopen_test": "TestPersistenceSurvivesReopen"
+  },
+  "workflows": [
+    {
+      "steps": [
+        "receive a request with x-share-token",
+        "load and validate the persisted share record",
+        "decrement the remaining use and append an audit event",
+        "return the protected resource payload"
+      ],
+      "test": "TestPrimaryWorkflow"
+    },
+    {
+      "steps": [
+        "read a persisted grant through the gateway",
+        "apply the request method and resource policy",
+        "persist the consumed count and rate window",
+        "confirm the response and readiness state"
+      ],
+      "test": "TestSecondaryWorkflow"
+    },
+    {
+      "steps": [
+        "prepare a request without a token",
+        "execute denial and security redaction",
+        "record the denial in the audit bucket",
+        "complete the delivery with a stable error response"
+      ],
+      "test": "TestTertiaryWorkflow"
+    }
+  ]
+}
